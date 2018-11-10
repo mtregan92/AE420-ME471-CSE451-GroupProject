@@ -1,3 +1,0 @@
-classdef Node < handle
-   # needs x, y, z, and index
-end 
