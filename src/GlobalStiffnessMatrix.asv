@@ -14,6 +14,8 @@ classdef GlobalStiffnessMatrix < handle
         function AddElementStiffnessMatrix(obj, element)
             % TODO
         end
+        
+        function Apply
     end
     
 end

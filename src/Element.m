@@ -4,13 +4,14 @@ classdef (Abstract) Element
     
     properties
         NodeIndices
-        NodexList
+        NodeMap
     end
     
     methods
-        function obj = Element(nodesList)
+        function obj = Element(nodeMap)
             obj.NodeIndices = [];
-            obj.NodexList = nodesList;
+            %TODO: change the list to a map
+            obj.NodeMap = nodeMap;
         end
         
         function leng = ComputeLengthBetweenNodes(node1, node2)

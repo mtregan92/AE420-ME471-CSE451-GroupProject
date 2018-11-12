@@ -14,6 +14,10 @@ classdef GlobalStiffnessMatrix < handle
         function AddElementStiffnessMatrix(obj, element)
             % TODO
         end
+        
+        function ApplyZeroBoundaryConditionToNode(obj, nodeIndex)
+            %TODO
+        end
     end
     
 end

@@ -9,16 +9,16 @@ classdef Linear2DElement < Element
     end
     
     methods
-        function obj = Linear2DElement(node1Index, node2Index, nodesList)            
-            obj@Element(nodesList)
+        function obj = Linear2DElement(node1Index, node2Index, NodeMap)            
+            obj@Element(NodeMap)
             obj.Node1Index = node1Index;
             obj.Node2Index = node2Index;
             obj.LenghSymbol = syms('l');
         end
         
         function kLocal = LocalStiffnessMatrix(obj, coefficient)
-            node1 = Node.GetNodeByIndex(obj.NodesList, obj.Node1Index);
-            node2 = Node.GetNodeByIndex(obj.NodesList, obj.Node2Index);
+            node1 = obj.NodeMap(obj.Node1Index);
+            node2 = obj.NodeMap(obj.Node2Index);
             angle = atan2(node1.Y-node2.Y, node1.X - none2.X);
             c = cos(angle);
             c2 = c*c;
@@ -44,16 +44,16 @@ classdef Linear2DElement < Element
         %end
         
         function gravityLoadVector = CreateGravityLoadVector(obj, coef)
-            node1 = Node.GetNodeByIndex(obj.NodesList, obj.Node1Index);
-            node2 = Node.GetNodeByIndex(obj.NodesList, obj.Node2Index);
+            node1 = obj.NodeMap(obj.Node1Index);
+            node2 = obj.NodeMap(obj.Node2Index);
             realLength = obj.ComputeLengthBetweenNodes(node1, node2);
             coef=subs(coef, LengthSymbol, realLength);
             gravityLoadVector = coef * [0; realLength /2; 0; realLength /2];
         end
         
         function thermalLoadVector = CreateThermalLoadVector(obj, coef)
-            node1 = Node.GetNodeByIndex(obj.NodesList, obj.Node1Index);
-            node2 = Node.GetNodeByIndex(obj.NodesList, obj.Node2Index);
+            node1 = obj.NodeMap(obj.Node1Index);
+            node2 = obj.NodeMap(obj.Node2Index);
             angle = atan2(node1.Y-node2.Y, node1.X - none2.X);
             c = cos(angle);
             s = sin(angle);
