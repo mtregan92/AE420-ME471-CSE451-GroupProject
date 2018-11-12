@@ -1,0 +1,62 @@
+classdef Linear2DElement < Element
+    %LINEAR1DELEMENT 
+    % z value will be ignored
+    
+    properties
+        Node1
+        Node2
+        LenghSymbol
+    end
+    
+    methods
+        function obj = Linear2DElement(node1, node2)
+            obj.Nodes = append(node1, node2);
+            obj.Node1 = node1;
+            obj.Node2 = node2;
+            obj.LenghSymbol = syms('l');
+        end
+        
+        function kLocal = LocalStiffnessMatrix(obj, coefficient)
+            angle = atan2(onj.Node1.Y-obj.Node2.Y, obj.Node1.X - obj.None2.X);
+            c = cos(angle);
+            c2 = c*c;
+            s = sin(angle);
+            s2=s*s;
+            cs=c*s;
+            realLength = obj.ComputeLengthBetweenNodes(obj.Node1, obj.Node2);
+            coefficient = subs(coefficient, LengthSymbo, realLength);
+            
+            kLocal = coefficient * [c2, cs, -s2, -cs; cs, s2, -cs, -s2; -c2, -cs, c2, cs; -cs, -s2, cs, s2];            
+        end
+        
+        %function concentratedLoadVector = CreateConcentratedLoadVector(obj, nodeIndex, coef, xDir, yDir) 
+        %    % note that calling code should NOT call this more than once
+        %    % for a new load
+        %    if~(nodeIndex == obj.Node1.Index || nodeIndex == obj.Node2.Index)
+        %        concentratedLoadVector  = [0;0];
+        %        return
+        %    end
+        %    realLength = obj.ComputeLengthBetweenNodes(obj.Node1, obj.Node2);
+        %    coef=subs(coef, LengthSymbol, realLength);
+        %    angleSplitBetween
+        %end
+        
+        function gravityLoadVector = CreateGravityLoadVector(obj, coef)
+            realLength = obj.ComputeLengthBetweenNodes(obj.Node1, obj.Node2);
+            coef=subs(coef, LengthSymbol, realLength);
+            gravityLoadVector = coef * [0; realLength /2; 0; realLength /2];
+        end
+        
+        function thermalLoadVector = CreateThermalLoadVector(obj, coef)
+            angle = atan2(onj.Node1.Y-obj.Node2.Y, obj.Node1.X - obj.None2.X);
+            c = cos(angle);
+            s = sin(angle);
+            return coef*[
+        end
+        
+        function rLocal = LocalLoadVector(obj, coefficient, loadFunction)
+            
+        end
+    end    
+end
+
