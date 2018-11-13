@@ -3,17 +3,16 @@ classdef (Abstract) Element
     %   Detailed explanation goes here
     
     properties
-        NodeIndices
-        NodeMap
+        Nodes
     end
     
     methods
-        function obj = Element(nodeMap)
-            obj.NodeIndices = [];
-            %TODO: change the list to a map
-            obj.NodeMap = nodeMap;
+        function obj = Element(nodes)            
+            obj.Nodes = nodes;
         end
-        
+    end
+
+    methods (Static)
         function leng = ComputeLengthBetweenNodes(node1, node2)
             diffX = node1.X-node2.X;
             diffY = node1.Y-node2.Y;
@@ -21,7 +20,7 @@ classdef (Abstract) Element
             leng = sqrt(diffX*diffX+diffY*diffY+diffZ*diffZ);
         end
     end
-   
+    
     methods (Abstract)        
         LocalStiffnessMatrix(obj, coefficient)        
     end

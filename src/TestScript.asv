@@ -28,16 +28,11 @@ rGlo = GlobalLoadVector(5, 2);
 for elm = elements
     localMat = elm.LocalStiffnessMatrix(68*500/elm.LengthSymbol);    
     kGlo.Add2NodeElementStiffnessMatrix(elm, localMat);    
-    rGlo.Add2NodeElementLoad(elm, elm.CreateGravityLoadVector(-0.00981*(2.698e-6)*500*elm.LengthSymbol));
+    rGlo.Add2NodeElementLoad(elm, elm.CreateGravityLoadVector(0.00981*2.698e-6*500*elm.LengthSymbol));
 end
-rGlo.Add2DConcentratedLoad(node5, 0, -50)
+rGlo.Add2DConcentratedLoad
 kGlo.K
-rGlo.R
-fixedNodes = [node1, node2];
-kGlo.ApplyZeroBoundaryConditionToNode(fixedNodes)
-rGlo.ApplyZeroBoundaryConditionToNode(fixedNodes)
-kinv=inv(kGlo.K);
-kinv*rGlo.R
+
 
   % nodes are a map of index to node data
   % elements is a list of elements

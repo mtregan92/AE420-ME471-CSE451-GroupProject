@@ -1,0 +1,20 @@
+classdef (Abstract) Element
+    %ELEMENT Summary of this class goes here
+    %   Detailed explanation goes here
+    
+    properties
+        
+    end
+    
+    methods
+        function obj = Element(nodeMap)            
+        end
+       
+
+    end
+   
+    methods (Abstract)        
+        LocalStiffnessMatrix(obj, coefficient)        
+    end
+end
+
