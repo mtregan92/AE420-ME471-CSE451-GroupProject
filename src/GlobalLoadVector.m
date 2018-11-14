@@ -1,9 +1,11 @@
 classdef GlobalLoadVector < handle
-    %GlobalLoadVector Summary of this class goes here
-    %   Detailed explanation goes here
+    %GlobalLoadVector is a helper type to assist in creating a global load
+    %vector.  
     
-    properties
+    properties (GetAccess = public, SetAccess = private)
         R
+        % The number of variables per node (2 for 2D X and Y, 3 for 3D X, Y
+        % and Z).
         NumberOfFreeElementsPerNode
     end
     

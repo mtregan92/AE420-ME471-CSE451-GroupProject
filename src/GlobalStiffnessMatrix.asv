@@ -1,9 +1,11 @@
 classdef GlobalStiffnessMatrix < handle
-    %GLOBALSTIFFNESSMATRIX Summary of this class goes here
-    %   Detailed explanation goes here
+    %GlobalStiffnessMatrix is a type that can be used to assemble the
+    %global stiffness matrix from a set of Elements.  
     
-    properties
+    properties (GetAccess = public, SetAccess = private)
         K
+        % The number of variables per node (2 for 2D X and Y, 3 for 3D X, Y
+        % and Z).
         NumberOfFreeElementsPerNode
     end
     
@@ -32,11 +34,11 @@ classdef GlobalStiffnessMatrix < handle
         end        
         
         function ApplyZeroBoundaryConditionToNode(obj, fixedNodes)
-            sortedNodes = 
-            for node = 
+            [~, ind] = sort([fixedNodes.Index], 'descend');
+            for node = fixedNodes(ind)
                 for el = 1:obj.NumberOfFreeElementsPerNode
-                    obj.K((node.Index-1)*obj.NumberOfFreeElementsPerNode, :) =[];
-                    obj.K(:, (node.Index-1)*obj.NumberOfFreeElementsPerNode) =[];
+                    obj.K((node.Index-1)*obj.NumberOfFreeElementsPerNode+1, :) =[];
+                    obj.K(:, (node.Index-1)*obj.NumberOfFreeElementsPerNode+1) =[];
                 end
             end
         end

@@ -1,5 +1,8 @@
 classdef Node < handle
-    properties
+    % A Node is simply 3 coordinates and an index. 
+    % It is simply data, it does not do anything.
+    
+    properties (GetAccess = public, SetAccess = private)
         X
         Y
         Z
