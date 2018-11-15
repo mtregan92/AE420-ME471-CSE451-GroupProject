@@ -5,6 +5,7 @@
 
 % This is problem 1 part d from homework 3
 % first, makr our nodes
+% DISTRICTRIZE
 nodes(1:5) = Node(0,0,0,0);
 node1 = Node(1, 0, 1000, 0);
 node2 = Node(2, 0, 0, 0);
@@ -19,6 +20,7 @@ nodes(4) = node4;
 nodes(5) = node5;
 
 % then our elements
+% ELEMENT PROPERTIES
 elements(1:7) = Linear2DElement(node1, node2);
 elements(1) = Linear2DElement(node1, node2);
 elements(2) = Linear2DElement(node1, node3);
@@ -29,26 +31,34 @@ elements(6) = Linear2DElement(node3, node5);
 elements(7) = Linear2DElement(node4, node5);
 
 % initialize our global items
-kGlo = GlobalStiffnessMatrix(5, 2);
-rGlo = GlobalLoadVector(5, 2);
+kGlo = GlobalStiffnessMatrix(length(nodes), 2);
+kGloAlt = GlobalStiffnessMatrix(length(nodes), 2);
+rGlo = GlobalLoadVector(length(nodes), 2);
 elements(1).LocalStiffnessMatrixNumerical(68*500)
-elements(1).LocalStiffnessMatrix(68*500/elements(1).LengthSymbol)
+elements(1).LocalStiffnessMatrix(68*500)
 
 % fill in our global items
+% ASSEMBLE
 for elm = elements
-    localMat = elm.LocalStiffnessMatrix(68*500/elm.LengthSymbol);    
-    kGlo.Add2NodeElementStiffnessMatrix(elm, localMat);    
-    rGlo.Add2NodeElementLoad(elm, elm.CreateGravityLoadVector(-0.00981*(2.698e-6)*500*elm.LengthSymbol));
+    localMat = elm.LocalStiffnessMatrix(68*500);    
+    kGlo.Add2NodeElementStiffnessMatrix(elm, localMat);        
+    rGlo.Add2NodeElementLoad(elm, elm.CreateGravityLoadVector(-0.00981*(2.698e-6)*500));
 end
-
+%kGloAlt.Add2NodeElementStiffnessMatrixNew(elements, 68*500);
 % add in the concentrated load
 rGlo.Add2DConcentratedLoad(node5, 0, -50)
 
 % print out our values
-kGlo.K;
+disp('correct')
+kGlo.K
+%disp('alt')
+%kGloAlt.K
+
+
 rGlo.R;
 
 % apply boundary conditions
+% BOUNDARY CONDITIONS
 fixedNodes = [];
 for node =nodes
     if(node.X == 0) 
@@ -61,8 +71,11 @@ kGlo.ApplyZeroBoundaryConditionToNode(fixedNodes)
 rGlo.ApplyZeroBoundaryConditionToNode(fixedNodes)
 
 % solve the equation
+% SOLVE
 kinv=inv(kGlo.K);
 kinv*rGlo.R
+
+% Still need to POST PROCESS
 
   % nodes are a map of index to node data
   % elements is a list of elements

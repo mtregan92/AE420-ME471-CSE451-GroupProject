@@ -6,10 +6,6 @@ classdef Linear2DElement < Element
     properties (GetAccess = public, SetAccess = private)
         Node1
         Node2
-        % If for the coefficients for a local stiffness matrix or a local 
-        % load vector you need the length of the element, use this symbol 
-        % for the length
-        LengthSymbol
     end
     
     methods
@@ -17,8 +13,6 @@ classdef Linear2DElement < Element
             obj@Element([node1, node2]);
             obj.Node1 = node1;
             obj.Node2 = node2;
-            len = sym('l');
-            obj.LengthSymbol = len;
         end
         
         function kLocal = LocalStiffnessMatrix(obj, coefficient)
@@ -32,18 +26,16 @@ classdef Linear2DElement < Element
             c2 = round(c*c * 1e13)/1e13;
             s2=round(s*s* 1e13)/1e13;
             cs=round(c*s* 1e13)/1e13;
-            realLength = Element.Compute2DLengthBetweenNodes(node1, node2);
-            coefficient = double(subs(coefficient, obj.LengthSymbol, realLength));
-            
-            kLocal = coefficient * [c2, cs, -c2, -cs; cs, s2, -cs, -s2; -c2, -cs, c2, cs; -cs, -s2, cs, s2];            
+            realLength = Element.Compute2DLengthBetweenNodes(node1, node2);            
+            kLocal = (coefficient/realLength) * [c2, cs, -c2, -cs; cs, s2, -cs, -s2; -c2, -cs, c2, cs; -cs, -s2, cs, s2];            
         end
                 
         function gravityLoadVector = CreateGravityLoadVector(obj, coef)
             node1 = obj.Node1;
             node2 = obj.Node2;
             realLength = obj.Compute2DLengthBetweenNodes(node1, node2);
-            coef=subs(coef, obj.LengthSymbol, realLength);
-            gravityLoadVector = coef * [0; 1 /2; 0; 1 /2];
+            
+            gravityLoadVector = coef *realLength* [0; 1 /2; 0; 1 /2];
         end
         
         function thermalLoadVector = CreateThermalLoadVector(obj, coef)
@@ -112,11 +104,9 @@ classdef Linear2DElement < Element
             tMat = [c, s, 0, 0; 0, 0, c, s];
             
             realLength = Element.Compute2DLengthBetweenNodes(node1, node2);
-            coefficient = double(subs(coef, obj.LengthSymbol, realLength));
-            
-            k00 = ode45(@(s, y) obj.func00ToIntegrate(coefficient, s), [0 realLength], 0);
-            k01 = ode45(@(s, y) obj.func01ToIntegrate(coefficient, s), [0 realLength], 0);
-            k11 = ode45(@(s, y) obj.func11ToIntegrate(coefficient, s), [0 realLength], 0);
+            k00 = ode45(@(s, y) obj.func00ToIntegrate(coef, s), [0 realLength], 0);
+            k01 = ode45(@(s, y) obj.func01ToIntegrate(coef, s), [0 realLength], 0);
+            k11 = ode45(@(s, y) obj.func11ToIntegrate(coef, s), [0 realLength], 0);
             altLocalK = transpose(tMat)*[k00.y(end), k01.y(end); k01.y(end), k11.y(end)] * tMat;
         end
     end    
