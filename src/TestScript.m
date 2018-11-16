@@ -31,9 +31,9 @@ elements(6) = Linear2DElement(node3, node5);
 elements(7) = Linear2DElement(node4, node5);
 
 % initialize our global items
-kGlo = GlobalStiffnessMatrix(length(nodes), 2);
-kGloAlt = GlobalStiffnessMatrix(length(nodes), 2);
-rGlo = GlobalLoadVector(length(nodes), 2);
+kGlo = GlobalStiffnessMatrix(5, 2);
+kGloAlt = GlobalStiffnessMatrix(5, 2);
+rGlo = GlobalLoadVector(5, 2);
 elements(1).LocalStiffnessMatrixNumerical(68*500)
 elements(1).LocalStiffnessMatrix(68*500)
 
@@ -41,21 +41,16 @@ elements(1).LocalStiffnessMatrix(68*500)
 % ASSEMBLE
 for elm = elements
     localMat = elm.LocalStiffnessMatrix(68*500);    
-    kGlo.Add2NodeElementStiffnessMatrix(elm, localMat);        
+    kGlo.AddElementStiffnessMatrix(elm, localMat);        
     rGlo.Add2NodeElementLoad(elm, elm.CreateGravityLoadVector(-0.00981*(2.698e-6)*500));
 end
-%kGloAlt.Add2NodeElementStiffnessMatrixNew(elements, 68*500);
+%
 % add in the concentrated load
 rGlo.Add2DConcentratedLoad(node5, 0, -50)
 
 % print out our values
-disp('correct')
-kGlo.K
-%disp('alt')
-%kGloAlt.K
-
-
-rGlo.R;
+%kGlo.K
+%rGlo.R;
 
 % apply boundary conditions
 % BOUNDARY CONDITIONS
