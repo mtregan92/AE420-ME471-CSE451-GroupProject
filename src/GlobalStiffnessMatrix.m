@@ -15,8 +15,8 @@ classdef GlobalStiffnessMatrix < handle
         function obj = GlobalStiffnessMatrix(numNodes, numFreeElements)
             % switch to the sparse matrix when we are happy with the
             % assembly part of FEM
-            %obj.K=sparse ( numNodes*numFreeElements , numNodes*numFreeElements );
-            obj.K = zeros(numNodes*numFreeElements, numNodes*numFreeElements);
+            obj.K=sparse ( numNodes*numFreeElements , numNodes*numFreeElements );
+            %obj.K = zeros(numNodes*numFreeElements, numNodes*numFreeElements);
             obj.NumberOfFreeElementsPerNode=numFreeElements;
         end
                 
