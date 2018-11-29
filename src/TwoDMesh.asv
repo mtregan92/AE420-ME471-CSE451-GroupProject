@@ -1,0 +1,74 @@
+%------------------------------------------------------------------------%
+%------ Gmsh to Matlab script: Import mesh to matlab---------------------%
+%------------------------------------------------------------------------%
+
+clc
+close all
+clear 
+
+%-----------------------------------------------------------------------%
+% dlmread(filename,delimiter,[R1 C1 R2 C2]) reads only the range 
+% bounded by row offsets R1 and R2 and column offsets C1 and C2.
+%-----------------------------------------------------------------------%
+file    =  ('C:\src\420GroupProj\simpleFlange.msh');
+% these constants are their natural SI value then multiplied/divided
+% to use a consistent set of units (the numbers at this point are simply
+% made up/plausable)
+E_fl = 195e9/1e6; %195 GPa, consistent unit is MPa
+poison = 0.3;
+pressure = 100e6 / 1e6; %100 MPa, consistent unit is MPa
+
+finalAnswer = ApplyStressToMesh('C:\src\420GroupProj\simpleFlange.msh', E_fl, poison, pressure) ;
+%---- visualize in matlab ---------------------
+
+magnitudes = 1:N_n;
+xs = 1:N_n;
+ys = 1:N_n;
+for nC= 1:N_n
+    x=finalAnswer((nC-1)*2+1);
+    xs(nC) = x;
+    y=finalAnswer((nC-1)*2+2);
+    ys(nC) = y;
+    magnitudes(nC) = sqrt(x*x+y*y);
+end
+figure(1)
+trimesh(two_d_elements, two_d_nodes(:,1),two_d_nodes(:,2), magnitudes)
+xlabel('X','fontsize',14)
+ylabel('Y','fontsize',14)
+title('GMsh to MATLAB import','fontsize',14)
+fh = figure(1);
+set(fh, 'color', 'white'); 
+
+figure(2)
+trimesh(two_d_elements, two_d_nodes(:,1),two_d_nodes(:,2), xs)
+xlabel('X','fontsize',14)
+ylabel('Y','fontsize',14)
+title('X displacement','fontsize',14)
+fh = figure(2);
+set(fh, 'color', 'white'); 
+
+figure(3)
+trimesh(two_d_elements, two_d_nodes(:,1),two_d_nodes(:,2), ys)
+xlabel('X','fontsize',14)
+ylabel('Y','fontsize',14)
+title('Y displacement','fontsize',14)
+fh = figure(3);
+set(fh, 'color', 'white'); 
+
+myNodes(1:N_n) = Node(0,0,0,0);
+updated2dNodes = [N_n,3];
+for n = 1:N_n
+    currentNode = myNodes(n);
+    myNodes(n) = Node(currentNode.Index, currentNode.X + finalAnswer((n-1)*2+1), currentNode.Y + finalAnswer((n-1)*2+2), 0);
+    updated2dNodes(n,1) = myNodes(n).X;
+    updated2dNodes(n,2) = myNodes(n).Y;
+end
+updated2dNodesForPlot = updated2dNodes(:,1:2);
+figure(4)
+trimesh(two_d_elements, updated2dNodes(:,1),updated2dNodes(:,2))
+xlabel('X','fontsize',14)
+ylabel('Y','fontsize',14)
+title('New Mesh','fontsize',14)
+fh = figure(4);
+set(fh, 'color', 'white'); 
+%-------------------------------------------------------------------------

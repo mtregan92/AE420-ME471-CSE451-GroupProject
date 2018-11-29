@@ -45,8 +45,8 @@ classdef GlobalLoadVector < handle
             [~, ind] = sort([fixedNodes.Index], 'descend');
             n = obj.NumberOfFreeElementsPerNode;
             for node = fixedNodes(ind)
-                obj.R((node.Index-1)*n+1) =[];
-                obj.R((node.Index-1)*n+2) =[];
+                obj.R((node.Index-1)*n+2) =[];                
+                obj.R((node.Index-1)*n+1) =[];                
             end
         end
         
@@ -55,6 +55,13 @@ classdef GlobalLoadVector < handle
             n = obj.NumberOfFreeElementsPerNode;
             for node = fixedNodes(ind)
                 obj.R(node.Index) =[];
+            end
+        end
+        
+        function ApplyZeroBoundaryConditionToIndices(obj, indices)
+            [~, ind] = sort(indices, 'descend');
+            for index = indices(ind)
+                obj.R(index) =[];
             end
         end
     end    

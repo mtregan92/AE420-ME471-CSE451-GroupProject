@@ -102,30 +102,57 @@ for i=1:length(two_d_elements)
     
     for innerNode = nodesToLoopOver
         ellipseCheck = (innerNode.X*innerNode.X/4) + (innerNode.Y*innerNode.Y/1);
-        if(ellipseCheck < 1.02)
+        if(ellipseCheck < 1.1)
             nodesOnCircle =[nodesOnCircle, innerNode];
             nodesToZeroOut = [nodesToZeroOut, innerNode];
         end
-        if(innerNode.Y > 4.98)
+        if(innerNode.Y > 4.9)
             nodesOn25DegEdge=[nodesOn25DegEdge, innerNode];
-            nodesToZeroOut = [nodesToZeroOut, innerNode];
+            %nodesToZeroOut = [nodesToZeroOut, innerNode];
         end
     end
     for innerNode = theElement.Nodes
-        if(innerNode.X > 4.98 || innerNode.X < 0.02 || innerNode.Y < 0.02)
+        if(innerNode.X > 4.9 || innerNode.X < 0.1 || innerNode.Y < 0.1)
             nodesOnInsulatedEdge=[nodesOnInsulatedEdge, innerNode];
+            %nodesToZeroOut = [nodesToZeroOut, innerNode];
         end
     end
     % 200 deg center
-    for nodeOnCirc = nodesOnCircle      
+    if(length(nodesOnCircle) == 2)
+        dist = Element.Compute2DLengthBetweenNodes(nodesOnCircle(1), nodesOnCircle(2));
+        rVec = [-1, -1, 0];
+        if(nodesOnCircle(1).Index == theElement.Nodes(1).Index && nodesOnCircle(2).Index == theElement.Nodes(3).Index)
+            rVec = [-1, 0, -1];
+        elseif((nodesOnCircle(1).Index == theElement.Nodes(2).Index && nodesOnCircle(2).Index == theElement.Nodes(3).Index))
+            rVec = [0, -1, -1];
+        end
+        rGlo.Add3NodeElementScalarLoad(theElement, (200 * dist/2) * rVec);
+        
+        finalAnswer(nodesOnCircle(1).Index) = 200;
+        finalAnswer(nodesOnCircle(2).Index) = 200;
+        nodesAddressed(nodesOnCircle(1).Index)=1;
+        nodesAddressed(nodesOnCircle(2).Index)=1;
         %rGlo.Add3NodeElementScalarLoad(theElement, (200 * area/3) * [1,1,1]);
-        finalAnswer(nodeOnCirc.Index) = 200;
+        %finalAnswer(nodeOnCirc.Index) = 200;
+        %nodesAddressed(nodeOnCirc.Index)=1;
     end
     
     % 25 deg top edge
-    for nodeOnEdge = nodesOn25DegEdge
+    if(length(nodesOn25DegEdge)==2)
+        dist = Element.Compute2DLengthBetweenNodes(nodesOn25DegEdge(1), nodesOn25DegEdge(2));
+        rVec = [-1, -1, 0];
+        if(nodesOn25DegEdge(1).Index == theElement.Nodes(1).Index && nodesOn25DegEdge(2).Index == theElement.Nodes(3).Index)
+            rVec = [-1, 0, -1];
+        elseif((nodesOn25DegEdge(1).Index == theElement.Nodes(2).Index && nodesOn25DegEdge(2).Index == theElement.Nodes(3).Index))
+            rVec = [0, -1, -1];
+        end
+        %rGlo.Add3NodeElementScalarLoad(theElement, (25 * dist/2) * rVec);
+        
         %rGlo.Add3NodeElementScalarLoad(theElement, (25 * area/3) * [1,1,1]);
-        finalAnswer(nodeOnEdge.Index) = 25;
+        %finalAnswer(nodesOn25DegEdge(1).Index) = 25;
+        %finalAnswer(nodesOn25DegEdge(2).Index) = 25;
+        %nodesAddressed(nodesOn25DegEdge(1).Index)=1;
+        %nodesAddressed(nodesOn25DegEdge(2).Index)=1;
     end
 
     % insulated edge
@@ -137,12 +164,17 @@ for i=1:length(two_d_elements)
         elseif((nodesOnInsulatedEdge(1).Index == theElement.Nodes(2).Index && nodesOnInsulatedEdge(2).Index == theElement.Nodes(3).Index))
             rVec = [0, -1, -1];
         end
-        rGlo.Add3NodeElementScalarLoad(theElement, (0 * dist/2) * rVec);
+        %rGlo.Add3NodeElementScalarLoad(theElement, (0 * dist/2) * rVec);
+        
+        %nodesAddressed(nodesOnInsulatedEdge(1).Index)=1;
+        %nodesAddressed(nodesOnInsulatedEdge(2).Index)=1;
+    
+        %finalAnswer(nodesOnInsulatedEdge(1).Index) = 0;
+        %finalAnswer(nodesOnInsulatedEdge(2).Index) = 0;
     end       
     
-    nodesAddressed(theElement.Nodes(1).Index)=1;
-    nodesAddressed(theElement.Nodes(2).Index)=1;
-    nodesAddressed(theElement.Nodes(3).Index)=1;
+    
+    
 end
 
 uniqueNodesToZeroOut = unique(nodesToZeroOut);
@@ -150,10 +182,8 @@ uniqueNodesToZeroOut = unique(nodesToZeroOut);
 [rows] = size(uniqueNodesToZeroOut);
 orderedUniqueNodesToZeroOut = reshape(sort(uniqueNodesToZeroOut(:), 'descend'), [rows]);
 
-%orderedUniqueNodesToZeroOut = sortrows(uniqueNodesToZeroOut, -1);
-
-%kGlo.ApplyZeroBoundaryConditionToNode(uniqueNodesToZeroOut)
-%rGlo.ApplyZeroBoundaryConditionTo1DNode(uniqueNodesToZeroOut)
+kGlo.ApplyZeroBoundaryConditionToNode(uniqueNodesToZeroOut)
+rGlo.ApplyZeroBoundaryConditionTo1DNode(uniqueNodesToZeroOut)
 
 kinv=inv(kGlo.K);
 answer = kinv*rGlo.R

@@ -1,0 +1,154 @@
+function [ output_args ] = ApplyStressToMesh(meshFilePath, E, pois )
+%APPLYSTRESSTOMESH Summary of this function goes here
+%   Detailed explanation goes here
+    % no of nodes is mentioned in 5th row and first column
+    N_n      = dlmread(file,'',[5-1 1-1 5-1 1-1]);
+    N_e      = dlmread(file,'',[7+N_n 0 7+N_n 0]);
+
+    node_id     = dlmread(file,'',[5 0 4+N_n 0]);
+    nodes       = dlmread(file,'',[5 1 4+N_n 3]);
+    elements    = dlmread(file,'',[8+N_n 0 7+N_n+N_e 7]);
+
+    %------- 2D Geometry
+
+    two_d_nodes = nodes(:,1:2);
+    elem_type   = elements(:,2);
+
+    %--- find the starting indices of 2D elements
+    two_ind = 1;
+    for i = 1:N_e
+        if(elem_type(i) ~= 2)
+            two_ind = two_ind+1;
+        end
+    end
+    %----------------------------------------------
+
+    two_d_elements(1:N_e-two_ind,1:3) = 0;
+    k = 1;
+    for i = two_ind:N_e
+       two_d_elements(k,1:3) = elements(i,6:8);
+       k = k+1;
+    end
+
+    %----------------------------------------------
+    % create the Node instances
+    myNodes(1:N_n) = Node(0,0,0,0);
+    myElements(1:length(two_d_elements)) = Triangular3Node2DElement(nodes(1), nodes(2), nodes(3), poison, E_fl, 1);
+
+    nodeCount = 0;
+    for tempNode = 1:N_n
+
+        nodeCount = nodeCount+1;
+        myNodes(nodeCount) = Node(nodeCount, nodes(nodeCount, 1), nodes(nodeCount, 2), 0);
+    end
+    % create the element instances
+    for i = 1:length(two_d_elements)
+        myElements(i) = Triangular3Node2DElement(myNodes(two_d_elements(i,1)), myNodes(two_d_elements(i,2)), myNodes(two_d_elements(i,3)), poison, E_fl, 1);
+    end
+
+    % initalize the global items
+    kGlo = GlobalStiffnessMatrix(N_n, 2);
+    rGlo = GlobalLoadVector(N_n, 2);
+    for i = 1:length(two_d_elements)
+        localMat = myElements(i).LocalStiffnessMatrix(1);    
+        kGlo.AddElementStiffnessMatrix(myElements(i), localMat);        
+    end
+
+    % populate final answer
+    finalAnswer = NaN([1,N_n*2]);
+    nodesAddressed = zeros([1,N_n]);
+
+    % apply the pressure to the right side
+    for node = myNodes
+        if((node.Y >= 5.0 && node.X <= 3.0) || node.X == 0)
+            rGlo.R((node.Index-1)*2 +1) = pressure;
+            rGlo.R((node.Index-1)*2 +2) = 0;
+        end
+    end
+
+    % find the nodes that we will zero out for BC's (ones where x=0)
+    nodesToZeroOut = [];
+    indicesZeroedOut = [];
+    for node = myNodes
+        if(node.Y < 4.005 && node.X > 4.5) % Y is fixed at the bolt
+            nodesToZeroOut = [nodesToZeroOut, node];
+            finalAnswer((node.Index-1)*2 +1) = 0;
+            finalAnswer((node.Index-1)*2 +2) = 0;
+            indicesZeroedOut = [indicesZeroedOut, (node.Index-1)*2+1];
+            indicesZeroedOut = [indicesZeroedOut, (node.Index-1)*2+2];
+        end
+    end
+
+    % apply the boundary conditions
+    bmcCount = 0;
+    kGlo.ApplyZeroBoundaryConditionToIndices(indicesZeroedOut)
+    rGlo.ApplyZeroBoundaryConditionToIndices(indicesZeroedOut)
+
+    % solve!
+    kinv=inv(kGlo.K);
+    answer = kinv*rGlo.R
+
+    otherCounter = 1;
+    for i = 1:N_n*2
+        if(~ismember(i, indicesZeroedOut))
+            finalAnswer(i) = answer(otherCounter);
+            otherCounter=otherCounter+1;
+        end
+    end
+    finalAnswer
+    %---- visualize in matlab ---------------------
+
+    magnitudes = 1:N_n;
+    xs = 1:N_n;
+    ys = 1:N_n;
+    for nC= 1:N_n
+        x=finalAnswer((nC-1)*2+1);
+        xs(nC) = x;
+        y=finalAnswer((nC-1)*2+2);
+        ys(nC) = y;
+        magnitudes(nC) = sqrt(x*x+y*y);
+    end
+    figure(1)
+    trimesh(two_d_elements, two_d_nodes(:,1),two_d_nodes(:,2), magnitudes)
+    xlabel('X','fontsize',14)
+    ylabel('Y','fontsize',14)
+    title('GMsh to MATLAB import','fontsize',14)
+    fh = figure(1);
+    set(fh, 'color', 'white'); 
+
+    figure(2)
+    trimesh(two_d_elements, two_d_nodes(:,1),two_d_nodes(:,2), xs)
+    xlabel('X','fontsize',14)
+    ylabel('Y','fontsize',14)
+    title('X displacement','fontsize',14)
+    fh = figure(2);
+    set(fh, 'color', 'white'); 
+
+    figure(3)
+    trimesh(two_d_elements, two_d_nodes(:,1),two_d_nodes(:,2), ys)
+    xlabel('X','fontsize',14)
+    ylabel('Y','fontsize',14)
+    title('Y displacement','fontsize',14)
+    fh = figure(3);
+    set(fh, 'color', 'white'); 
+
+    myNodes(1:N_n) = Node(0,0,0,0);
+    updated2dNodes = [N_n,3];
+    for n = 1:N_n
+        currentNode = myNodes(n);
+        myNodes(n) = Node(currentNode.Index, currentNode.X + finalAnswer((n-1)*2+1), currentNode.Y + finalAnswer((n-1)*2+2), 0);
+        updated2dNodes(n,1) = myNodes(n).X;
+        updated2dNodes(n,2) = myNodes(n).Y;
+    end
+    updated2dNodesForPlot = updated2dNodes(:,1:2);
+    figure(4)
+    trimesh(two_d_elements, updated2dNodes(:,1),updated2dNodes(:,2))
+    xlabel('X','fontsize',14)
+    ylabel('Y','fontsize',14)
+    title('New Mesh','fontsize',14)
+    fh = figure(4);
+    set(fh, 'color', 'white'); 
+    %-------------------------------------------------------------------------
+
+end
+

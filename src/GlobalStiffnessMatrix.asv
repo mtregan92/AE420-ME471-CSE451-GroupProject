@@ -51,11 +51,11 @@ classdef GlobalStiffnessMatrix < handle
             end
         end
         
-        function ApplyZeroBoundaryConditionToIndices(obj, indices)
+        function ApplyZeroBoundaryConditionToIndex(obj, indices)
             [~, ind] = sort(indices, 'descend');
             for index = indices(ind)
-                    obj.K(index,:) =[];
-                    obj.K(:,index) =[];
+                    obj.K((node.Index-1)*obj.NumberOfFreeElementsPerNode+1, :) =[];
+                    obj.K(:, (node.Index-1)*obj.NumberOfFreeElementsPerNode+1) =[];
             end
         end
     end    
