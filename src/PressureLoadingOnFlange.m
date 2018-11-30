@@ -16,18 +16,38 @@ pressure = 100e6 / 1e6; %100 MPa, consistent unit is MPa
 % read in the mesh
 originalMesh = ReadInMeshInfo(file, []);
 mesh = originalMesh;
-% number of nodes gets used a lot
+% number of nodes gets used a lot, store it
 N_n=originalMesh.NumNodes;
-femSystem=1;
-lastPressure = 0;
+
+% get nodes that are fixed (just making up numbers here)
+fixedNodes = Node.FindNodesInRange(originalMesh.Nodes, 2.98, 4.02, 0, 5); % pretend bolt is fixed
+% and where we stop modeling the pipe (cause why not)
+fixedNodes = [fixedNodes, Node.FindNodesInRange(originalMesh.Nodes, 0, 1.01, 0, 0.02)];
+
+% get nodes where there is a pressure
+pressureNodes = Node.FindNodesInRange(originalMesh.Nodes, 0, 0.02, 0, 6);
+pressureNodes = [pressureNodes, Node.FindNodesInRange(originalMesh.Nodes, 0, 3, 4.98, 6)];
+pressureNodes = [pressureNodes, Node.FindNodesInRange(originalMesh.Nodes, 2.98, 3.02, 4.98, 6)];
+
 % do it all!
-for pressureSte = 1:1
-    pressureToLoad = lastPressure + pressure/1;
-    femSystem = ApplyStressToMesh(mesh, E_fl, poison, pressureToLoad);
-    newMesh = ReadInMeshInfo(file, femSystem.D);
+numSteps = 5;
+finalAnswer = zeros(1,N_n*2);
+pressures = [100, -100, 100, -100, 100, -100, 100, -100];
+maxDisplacements = [1,length(pressures)];
+femSystems(1:length(pressures)) = FemSystem(1,2,3);
+pc = 0;
+%for pressureSte = 1:numSteps
+for pressureToLoad = pressures
+    pc=pc+1;
+    %pressureToLoad = lastPressure + pressure/numSteps;
+    femSystem = ApplyStressToMesh(mesh, E_fl, poison, pressureToLoad, pressureNodes, 0, [], fixedNodes);
+    femSystems(pc)=femSystem;
+    mesh = ReadInMeshInfo(file, femSystem.D);
+    finalAnswer = finalAnswer + femSystem.D;
     lastPressure = pressureToLoad;
+    maxDisplacements(pc) = max(abs(finalAnswer));
 end
-finalAnswer = femSystem.D;
+maxDisplacements
 % post processing
 magnitudes = 1:N_n;
 xs = 1:N_n;
@@ -68,17 +88,8 @@ title('Y displacement','fontsize',14)
 fh = figure(3);
 set(fh, 'color', 'white'); 
 
-%myNodes(1:N_n) = Node(0,0,0,0);
-%updated2dNodes = [N_n,3];
-%for n = 1:N_n
-%    currentNode = myNodes(n);
-%   myNodes(n) = Node(currentNode.Index, currentNode.X + finalAnswer((n-1)*2+1), currentNode.Y + finalAnswer((n-1)*2+2), 0);
-%    updated2dNodes(n,1) = myNodes(n).X;
-%    updated2dNodes(n,2) = myNodes(n).Y;
-%end
-%updated2dNodesForPlot = updated2dNodes(:,1:2);
 figure(4)
-trimesh(newMesh.TwoDElements, newMesh.TwoDNodes(:,1),newMesh.TwoDNodes(:,2))
+trimesh(mesh.TwoDElements, mesh.TwoDNodes(:,1),mesh.TwoDNodes(:,2))
 xlabel('X','fontsize',14)
 ylabel('Y','fontsize',14)
 title('New Mesh','fontsize',14)

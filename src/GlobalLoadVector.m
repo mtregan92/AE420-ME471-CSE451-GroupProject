@@ -24,7 +24,22 @@ classdef GlobalLoadVector < handle
             
             obj.R((node2.Index-1)*n+1) = obj.R((node2.Index-1)*n+1) + localLoad(3);
             obj.R((node2.Index-1)*n+2) = obj.R((node2.Index-1)*n+2) + localLoad(4);
-        end   
+        end  
+        
+        function Add3NodeElementLoad(obj, element, localLoad)
+            node1 = element.Nodes(1);
+            node2 = element.Nodes(2);
+            node3 = element.Nodes(3);
+            n = obj.NumberOfFreeElementsPerNode;
+            obj.R((node1.Index-1)*n+1) = obj.R((node1.Index-1)*n+1) + localLoad(1);
+            obj.R((node1.Index-1)*n+2) = obj.R((node1.Index-1)*n+2) + localLoad(2);
+            
+            obj.R((node2.Index-1)*n+1) = obj.R((node2.Index-1)*n+1) + localLoad(3);
+            obj.R((node2.Index-1)*n+2) = obj.R((node2.Index-1)*n+2) + localLoad(4);
+            
+            obj.R((node3.Index-1)*n+1) = obj.R((node3.Index-1)*n+1) + localLoad(5);
+            obj.R((node3.Index-1)*n+2) = obj.R((node3.Index-1)*n+2) + localLoad(6);
+        end  
         
         function Add3NodeElementScalarLoad(obj, element, localLoad)
             node1 = element.Nodes(1);

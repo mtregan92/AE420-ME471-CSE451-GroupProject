@@ -99,7 +99,19 @@ classdef Triangular3Node2DElement < Element
         
         function area = AreaOfElement(obj)
             area = 0.5*((obj.Node1.X-obj.Node3.X)*(obj.Node2.Y-obj.Node1.Y) - (obj.Node1.X-obj.Node2.X)*(obj.Node3.Y-obj.Node1.Y));
-        end               
+        end   
+        
+        function localPressureLoad = ComputeLocalPressureVector(obj, node1, node2, pressure)
+            dist = Element.Compute2DLengthBetweenNodes(node1, node2);
+            rVec = [-1, 0, -1, 0, 0, 0];
+            if(node1.Index == obj.Nodes(1).Index && node2.Index == obj.Nodes(3).Index)
+                rVec = [-1, 0, 0, 0, -1, 0];
+            elseif(node1.Index == obj.Nodes(2).Index && node2.Index == obj.Nodes(3).Index)
+                rVec = [0, 0, -1, 0, -1, 0];
+            end
+            localPressureLoad = rVec * -1*pressure*dist/2;
+            %TODO: rVec is not correct
+        end
     end
     
 end

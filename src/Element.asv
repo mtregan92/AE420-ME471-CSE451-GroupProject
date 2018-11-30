@@ -12,23 +12,6 @@ classdef (Abstract) Element
         function obj = Element(nodes)            
             obj.Nodes = nodes;
         end
-        
-        function trueOrFalse = ContainsNodes(obj, nodes)
-            trueOrFalse = 1;
-            for node = nodes
-                localFound = 0;
-                for myNode = obj.Nodes
-                    if(myNode.Index == node.Index)
-                        localFound = 1;
-                        break;
-                    end
-                end
-                if(localFound == 0)
-                    trueOrFalse = 0;
-                    break;
-                end
-            end
-        end
     end
 
     methods (Static)
@@ -48,7 +31,22 @@ classdef (Abstract) Element
             leng = sqrt(diffX*diffX+diffY*diffY);
         end
         
-        
+        function trueOrFalse = ContainsNodes(obj, nodes)
+            trueOrFalse = 1;
+            for node = nodes
+                localFound = 0;
+                for myNode = obj.Nodes
+                    if(myNode.Index == node.Index)
+                        localFound = 1;
+                        break;
+                    end
+                end
+                if(localFound == 0)
+                    trueOrFalse = 0;
+                    break;
+                end
+            end
+        end
     end
     
     methods (Abstract)        
